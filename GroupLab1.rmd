@@ -1,0 +1,14 @@
+---
+title: "Group Lab 1"
+author: "Group 1"
+date: "January 16, 2019"
+output: html_document
+---
+
+```{r setup, warning=FALSE, echo=FALSE}
+library(tidyverse)
+object1=read.csv("China_EO_49to17.csv")
+object2=as_tibble(object1)
+```
+
+
