@@ -12,3 +12,8 @@ object2=as_tibble(object1)
 ```
 
 
+# Part 2: Looking at the data
+
+A couple of interesting things can be gleaned from the data. One is the ffact that China is not entirely comprised of provinces. There are 4 cities within the dataset that comprise China's municipalities: Beijin, Tianjin, Shanghai, Chongqing. These municipalities both hold the rank of both city and provinces themselves. As a result, they hold some of the highest growth. Take a look at these four cities industrial output side-by side
+
+(Put map here)
