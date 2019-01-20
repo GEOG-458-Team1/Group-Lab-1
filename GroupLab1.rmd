@@ -10,5 +10,16 @@ library(tidyverse)
 object1=read.csv("China_EO_49to17.csv")
 object2=as_tibble(object1)
 ```
+```{r, echo = FALSE}
+ratio <- function(x, y){
+  grab <- select(object1, Year, x, y)
+  out_ratio <- grab[, x]/grab[, y]
+  compare <-mutate(grab, Output_Ratio = out_ratio)
+  compare
+}
+ratio("Beijing_Output", "Tianjin_Output")
 
+```
+```{r echo = TRUE}
 
+```
