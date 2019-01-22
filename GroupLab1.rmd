@@ -7,13 +7,27 @@ output: html_document
 
 ```{r setup, warning=FALSE, echo=FALSE}
 library(tidyverse)
+library(reshape2)
 object1=read.csv("China_EO_49to17.csv")
 object2=as_tibble(object1)
+
+majorCities <- select(object2, Beijing_Output, Shanghai_Output, Tianjin_Output, Chongqing_Output, Year) 
+
+majorCities <- melt(majorCities, id="Year")
+part2map1 <-ggplot(data=majorCities,aes(x=Year, y=value, color=variable)) + geom_line()
+                                     
 ```
 
 
 # Part 2: Looking at the data
 
-A couple of interesting things can be gleaned from the data. One is the ffact that China is not entirely comprised of provinces. There are 4 cities within the dataset that comprise China's municipalities: Beijin, Tianjin, Shanghai, Chongqing. These municipalities both hold the rank of both city and provinces themselves. As a result, they hold some of the highest growth. Take a look at these four cities industrial output side-by side
+A couple of interesting things can be gleaned from the data. One is the ffact that China is not entirely comprised of provinces. There are 4 cities within the dataset that comprise China's municipalities: Beijing, Tianjin, Shanghai, Chongqing. These municipalities both hold the rank of both city and provinces themselves. As a result, they hold some of the highest growth. Take a look at these four cities industrial output side-by side
 
-(Put map here)
+
+```{r, echo=FALSE}
+part2map1
+```  
+
+As you can see, the rate of growth is massive starting around 1990. One thing that stands out is that Shanghai started growing a lot earlier than the other municipalities. If we take a further look at this...
+
+r is hard 
