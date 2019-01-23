@@ -10,11 +10,6 @@ library(tidyverse)
 library(reshape2)
 object1=read.csv("China_EO_49to17.csv")
 object2=as_tibble(object1)
-
-majorCities <- select(object2, Beijing_Output, Shanghai_Output, Tianjin_Output, Chongqing_Output, Year) 
-
-majorCities <- melt(majorCities, id="Year")
-part2map1 <-ggplot(data=majorCities,aes(x=Year, y=value, color=variable)) + geom_line()
                                      
 ```
 
@@ -25,9 +20,34 @@ A couple of interesting things can be gleaned from the data. One is the ffact th
 
 
 ```{r, echo=FALSE}
+majorCities <- select(object2, Beijing_Output, Shanghai_Output, Tianjin_Output, Chongqing_Output, Year) 
+
+majorCities <- melt(majorCities, id="Year")
+
+part2map1 <-ggplot(data=majorCities,aes(x=Year, y=value, color=variable)) + geom_line()
+
 part2map1
 ```  
 
-As you can see, the rate of growth is massive starting around 1990. One thing that stands out is that Shanghai started growing a lot earlier than the other municipalities. If we take a further look at this...
+As you can see, the rate of growth is massive starting around 1990. This is consistent with the rise of manufacturing in China and also the easing of regulations for private businesses. One thing that stands out is that Shanghai started growing a lot earlier than the other municipalities, which may stem to its location as a port city.
 
-r is hard 
+How does this compare to the output of the provinces of places like Tibet or Inner Mongolia, considered autonomous regions because they have a majority-minority population. Let's take a look at their output for the 5 provinces. 
+
+```{r, echo=FALSE}
+autonomousRegions <- select(object2, Xinjiang_Output, Ningxia_Output, Tibet_Output, Guangxi_Output, InnerMongolia_Output, Year)
+
+autonomousRegions <- melt(autonomousRegions, id="Year")
+
+part2map2 <- ggplot(data=autonomousRegions, aes(x=Year, y=value, color=variable)) + geom_line()
+
+part2map2
+```
+
+While there are a lot of missing values, the most notable thing is that aside from 
+
+if you're noticing that the dataset has a lot of missing values, you are correct! Since our dataset was sourced from a private source, some of the values are missing. It could be that missing values are more prevelant for smaller provinces? How can we figure this out? With R, of course. 
+
+```{r, echo=FALSE}
+
+```
+
