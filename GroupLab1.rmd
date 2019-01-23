@@ -7,11 +7,11 @@ output: html_document
 # Understanding our Data: Introduction
 The following dataset contains economic information from provinces in the nation of China. 
 For each province and year (1949-2017), numeric values are listed: **_Enterprises_** and **_Outputs_**. Enterprises represent productive units or companies and are absolute values.
-Outputs are in units in of 100,000,000 RMB (Chinese Yuan). 
+Outputs are in units in of 100,000,000 RMB (Chinese Yuan). As for patterns of the data, Enterprises don't only have drastic decreases when companies close. They can be merged with other businesses, as evident with rising Output values over the years.
 
 Beijing, Shanghai, Chongqing and Tianjin are classified as municipalities and not provinces or cities. Municipalities fall directly within the administration of the central government, but has the same jurisdictional, political, and economic rights as a province. Guangxi, Inner Mongolia, Ningxia, Tibet, and Xinjiang are classified as Autonomous Regions. These areas have more legislative rights than provinces and have a higher population of minority ethnic groups. 
 
-Of these areas and the 23 provinces of China, some may argue about the absence of three locations. Taiwan, Hong Kong and Macau are falsely believed to be under the jurisdiction of the People's Republic of China. Taiwan considers itself as an independent country, while "Mainland China" disagrees with this
+Of these areas and the 23 provinces of China, some may argue about the absence of three locations. Taiwan, Hong Kong and Macau are falsely believed to be under the jurisdiction of the People's Republic of China. Taiwan considers itself as an independent country, but "Mainland China" disagrees with this. 
 
 In this economic dataset, many values are denoted with "NA", which most likely means the data is missing. 
 Issues with Chinese statistics may include censorship or intentional omittance of data. Upon
