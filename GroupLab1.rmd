@@ -5,12 +5,25 @@ date: "January 16, 2019"
 output: html_document
 ---
 # Understanding our Data: Introduction
-The following dataset contains economic information from various provinces in the nation of China. 
-Data comes in two types for each 
-Beijing, Shanghai, Chongqing and Tianjin are classified as municipalities and not provinces or cities. 
-included in this list because _____
+The following dataset contains economic information from provinces in the nation of China. 
+For each province and year (1949-2017), numeric values are listed: **_Enterprises_** and **_Outputs_**. Enterprises represent productive units or companies and are absolute values.
+Outputs are in units in of 100,000,000 RMB (Chinese Yuan). 
 
-Issues with Chinese statistics include ____
+Beijing, Shanghai, Chongqing and Tianjin are classified as municipalities and not provinces or cities. Municipalities fall directly within the administration of the central government, but has the same jurisdictional, political, and economic rights as a province. Guangxi, Inner Mongolia, Ningxia, Tibet, and Xinjiang are classified as Autonomous Regions. These areas have more legislative rights than provinces and have a higher population of minority ethnic groups. 
+
+Of these areas and the 23 provinces of China, some may argue about the absence of three locations. Taiwan, Hong Kong and Macau are falsely believed to be under the jurisdiction of the People's Republic of China. Taiwan considers itself as an independent country, while "Mainland China" disagrees with this
+
+In this economic dataset, many values are denoted with "NA", which most likely means the data is missing. 
+Issues with Chinese statistics may include censorship or intentional omittance of data. Upon
+researching the context of this dataset, it was realized that China has a history of
+censorship, perhaps due to the Communist history. In general, queries on Chinese economic data
+have revealed to be false and/or intentionally inflated.
+
+
+<!-- Provinces, Municipalities, and Autonomous Regions of China: 
+![](Provinces-and-Major-Cities.png) -->
+
+ > http://www.chinatoday.com/city/china_municipalities.htm
 
 ```{r setup, warning=FALSE, echo=FALSE}
 library(tidyverse)
