@@ -4,6 +4,10 @@ author: "Group 1"
 date: "January 16, 2019"
 output: html_document
 ---
+# Understanding our Data: Introduction
+
+The following dataset contains economic information from 31 provinces in the nation of China. 
+
 
 ```{r setup, warning=FALSE, echo=FALSE}
 library(tidyverse)
