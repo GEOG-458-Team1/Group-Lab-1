@@ -11,15 +11,21 @@ object1=read.csv("China_EO_49to17.csv")
 object2=as_tibble(object1)
 ```
 ```{r, echo = FALSE}
-ratio <- function(x, y){
-  grab <- select(object1, Year, x, y)
+ratio <- function(data, x, y){
+  grab <- select(data, Year, x, y) %>%
+    na.omit()
   out_ratio <- grab[, x]/grab[, y]
   compare <-mutate(grab, Output_Ratio = out_ratio)
   compare
 }
-ratio("Beijing_Output", "Tianjin_Output")
-
+BT <- ratio(object1, "Beijing_Output", "Tianjin_Output")
+LG <- ratio(object1, "Liaoning_Output", "Guangdong_Output")
+SH <- ratio(object1, "Shanghai_Output", "Hunan_Output")
 ```
-```{r echo = TRUE}
 
+```{r echo = TRUE}
+line_plot <- geom_line(aes(x= Year, y=Output_Ratio))
+ggplot(data = LG) + line_plot
+ggplot(data = BT) + line_plot
+ggplot(data = SH) + line_plot
 ```
