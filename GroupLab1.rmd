@@ -6,6 +6,7 @@ output: html_document
 ---
 # Understanding our Data: Introduction
 The following dataset contains economic information from various provinces in the nation of China. 
+Data comes in two types for each 
 Beijing, Shanghai, Chongqing and Tianjin are classified as municipalities and not provinces or cities. 
 included in this list because _____
 
