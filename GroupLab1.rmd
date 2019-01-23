@@ -10,7 +10,7 @@ library(tidyverse)
 object1=read.csv("China_EO_49to17.csv")
 object2=as_tibble(object1)
 ```
-```{r, echo = FALSE}
+```{r function, echo = FALSE}
 ratio <- function(data, x, y){
   grab <- select(data, Year, x, y) %>%
     na.omit()
@@ -23,9 +23,18 @@ LG <- ratio(object1, "Liaoning_Output", "Guangdong_Output")
 SH <- ratio(object1, "Shanghai_Output", "Hunan_Output")
 ```
 
-```{r echo = TRUE}
+```{r graph, echo = FALSE}
 line_plot <- geom_line(aes(x= Year, y=Output_Ratio))
 ggplot(data = LG) + line_plot
 ggplot(data = BT) + line_plot
 ggplot(data = SH) + line_plot
+```
+
+```{r shares, echo = FALSE}
+output_table <- select(object2, Year,  ends_with("_Output"))
+output_table[is.na(output_table)] = 0
+output_table$National_Output <- rowSums(output_table)
+for(i in ncol(output_table)-1){
+  share_table <- mutate(output_table, shareoftotal = [i, ]/National_Output )
+}
 ```
