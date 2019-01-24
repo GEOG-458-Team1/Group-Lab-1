@@ -5,7 +5,7 @@ date: "January 16, 2019"
 output: html_document
 ---
 
-```{r setup, warning=FALSE, echo=FALSE}
+```{r setup, warning=FALSE, include=FALSE}
 library(tidyverse)
 object1=read.csv("China_EO_49to17.csv")
 object2=as_tibble(object1)
@@ -34,7 +34,33 @@ ggplot(data = SH) + line_plot
 output_table <- select(object2, Year,  ends_with("_Output"))
 output_table[is.na(output_table)] = 0
 output_table$National_Output <- rowSums(output_table)
-for(i in ncol(output_table)-1){
-  share_table <- mutate(output_table, shareoftotal = [i, ]/National_Output )
-}
+
+#Doesn't work when we input data to create shares
+dontWork<- 'shares <- function(data, x, y){
+  grab <- select(output_table, Year, x, y) %>% na.omit()
+  share_ratio <- grab[, x]/grab[, y]
+  output_table$Share <- share_ratio
+  output_table
+}'
+grab <- select(output_table, Year, "Beijing_Output", "National_Output") %>% na.omit()
+  share_ratio <- grab[, "Beijing_Output"]/grab[, "National_Output"]
+  output_table$Share <- share_ratio
+  output_table
+
+grab <- select(output_table, Year, "Guangxi_Output", "National_Output") %>% na.omit()
+  share_ratio <- grab[, "Guangxi_Output"]/grab[, "National_Output"]
+  output_table$Share2 <- share_ratio
+  output_table
+  
+grab <- select(output_table, Year, "Shaanxi_Output", "National_Output") %>% na.omit()
+  share_ratio <- grab[, "Shaanxi_Output"]/grab[, "National_Output"]
+  output_table$Share3 <- share_ratio
+  output_table
+
+#doesn't plot out the data
+ggplot(data = output_table) +
+  geom_line(aes(x = Year, y = National_Output)) 
+
+
+'shares(output_table, "Beijing_Output", "National_Output")'
 ```
