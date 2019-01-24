@@ -5,49 +5,45 @@ date: "January 16, 2019"
 output: html_document
 ---
 
-```{r setup, warning=FALSE, echo=FALSE}
+```{r setup, warning=FALSE, echo=FALSE, message=FALSE}
 library(tidyverse)
-library(reshape2)
+library(knitr)
+library(stringr)
+
 object1=read.csv("China_EO_49to17.csv")
 object2=as_tibble(object1)
-                                     
 ```
 
 
 # Part 2: Looking at the data
 
-A couple of interesting things can be gleaned from the data. One is the ffact that China is not entirely comprised of provinces. There are 4 cities within the dataset that comprise China's municipalities: Beijing, Tianjin, Shanghai, Chongqing. These municipalities both hold the rank of both city and provinces themselves. As a result, they hold some of the highest growth. Take a look at these four cities industrial output side-by side
+A couple of interesting things can be gleaned from the data. One is the fact that China is not entirely comprised of provinces.
+There are 4 cities within the dataset that comprise China's municipalities: Beijin, Tianjin, Shanghai, Chongqing. These municipalities 
+both hold the rank of both city and provinces themselves. As a result, they hold some of the highest growth. Take a look at these four
+cities industrial output side-by side
+
+(Put map here)
+
+Enterprises are companies or production units
+Ouput are in RMB which represent the provinces' GDP
+
+```{r echo=FALSE, message=FALSE}
+province_name <- "Beijing_Enterprise"
+columnNames <- colnames(object2)
+enterprises <- columnNames[grep("Enterprise", columnNames)]
+outputs <- columnNames[grep("Output", columnNames)]
+p <- ggplot(data = object2, aes(Year))
+for(i in 1:15){
+  p <- p + geom_line(aes_string(y = enterprises[i], color=shQuote(enterprises[i])), size = 1)
+}
+p
 
 
-```{r, echo=FALSE}
-majorCities <- select(object2, Beijing_Output, Shanghai_Output, Tianjin_Output, Chongqing_Output, Year) 
-
-majorCities <- melt(majorCities, id="Year")
-
-part2map1 <-ggplot(data=majorCities,aes(x=Year, y=value, color=variable)) + geom_line()
-
-part2map1
-```  
-
-As you can see, the rate of growth is massive starting around 1990. This is consistent with the rise of manufacturing in China and also the easing of regulations for private businesses. One thing that stands out is that Shanghai started growing a lot earlier than the other municipalities, which may stem to its location as a port city.
-
-How does this compare to the output of the provinces of places like Tibet or Inner Mongolia, considered autonomous regions because they have a majority-minority population. Let's take a look at their output for the 5 provinces. 
-
-```{r, echo=FALSE}
-autonomousRegions <- select(object2, Xinjiang_Output, Ningxia_Output, Tibet_Output, Guangxi_Output, InnerMongolia_Output, Year)
-
-autonomousRegions <- melt(autonomousRegions, id="Year")
-
-part2map2 <- ggplot(data=autonomousRegions, aes(x=Year, y=value, color=variable)) + geom_line()
-
-part2map2
-```
-
-While there are a lot of missing values, the most notable thing is that aside from 
-
-if you're noticing that the dataset has a lot of missing values, you are correct! Since our dataset was sourced from a private source, some of the values are missing. It could be that missing values are more prevelant for smaller provinces? How can we figure this out? With R, of course. 
-
-```{r, echo=FALSE}
+q <- ggplot(data = object2, aes(Year))
+for(i in 1:10){
+  q <- q + geom_line(aes_string(y = outputs[i], color=shQuote(outputs[i])), size = 1)
+}
+q
 
 ```
 
