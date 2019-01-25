@@ -33,15 +33,21 @@ ggplot(data = SH) + line_plot
 ```{r shares, echo = FALSE}
 output_table <- select(object2, Year,  ends_with("_Output"))
 output_table[is.na(output_table)] = 0
-output_table$National_Output <- rowSums(output_table)
+output_table <- mutate(output_table, National_Output = rowSums(output_table))
 
 #Doesn't work when we input data to create shares
-dontWork<- 'shares <- function(data, x, y){
-  grab <- select(output_table, Year, x, y) %>% na.omit()
-  share_ratio <- grab[, x]/grab[, y]
-  output_table$Share <- share_ratio
-  output_table
-}'
+shares <- function(data, x){
+grab <- select(output_table, Year, x, "National_Output")
+  division = grab[ ,x]/grab[, "National_Output"]
+  Share_Ratio = as.numeric(unlist(division))
+  com <- mutate(output_table, Share_Ratio = Share_Ratio)
+  com
+}
+
+shares(output_table, "Beijing_Output")
+shares(output_table, "Shaanxi_Output")
+shares(output_table, "Guangxi_Output")
+'
 grab <- select(output_table, Year, "Beijing_Output", "National_Output") %>% na.omit()
   share_ratio <- grab[, "Beijing_Output"]/grab[, "National_Output"]
   output_table$Share <- share_ratio
@@ -56,8 +62,8 @@ grab <- select(output_table, Year, "Shaanxi_Output", "National_Output") %>% na.o
   share_ratio <- grab[, "Shaanxi_Output"]/grab[, "National_Output"]
   output_table$Share3 <- share_ratio
   output_table
-
-#doesn't plot out the data
+'
+#doesnt plot out the data
 ggplot(data = output_table) +
   geom_line(aes(x = Year, y = National_Output)) 
 
