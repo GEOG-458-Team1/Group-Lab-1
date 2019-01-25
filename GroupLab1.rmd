@@ -5,15 +5,17 @@ date: "January 16, 2019"
 output: html_document
 ---
 
-```{r setup, warning=FALSE, echo=FALSE, message=FALSE}
+```{r setup, warning=FALSE, echo=FALSE, include=FALSE}
 library(tidyverse)
+library(reshape2)
+library(ggplot2)
 library(knitr)
-library(stringr)
+library(RColorBrewer)
 
 object1=read.csv("China_EO_49to17.csv")
 object2=as_tibble(object1)
+                                     
 ```
-
 
 # Part 2: Looking at the data
 
@@ -22,27 +24,99 @@ There are 4 cities within the dataset that comprise China's municipalities: Beij
 both hold the rank of both city and provinces themselves. As a result, they hold some of the highest growth. Take a look at these four
 cities industrial output side-by side
 
-(Put map here)
-
-Enterprises are companies or production units
-Ouput are in RMB which represent the provinces' GDP
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-columnNames <- colnames(object2)
-enterprises <- columnNames[grep("Enterprise", columnNames)]
-outputs <- columnNames[grep("Output", columnNames)]
-p <- ggplot(data = object2, aes(Year))
-for(i in 1:15){
-  p <- p + geom_line(aes_string(y = enterprises[i], color=shQuote(enterprises[i])), size = 1)
-}
-p
+majorCities <- select(object2, Beijing_Output, Shanghai_Output, Tianjin_Output, Chongqing_Output, Year) 
+majorCities <- melt(majorCities, id="Year")
+part2map1 <-ggplot(data=majorCities,aes(x=Year, y=value, color=variable)) + geom_line()
+part2map1
+```  
 
+As you can see, the rate of growth is massive starting around 1990. This is consistent with the rise of manufacturing in China and also the easing of regulations for private businesses. One thing that stands out is that Shanghai started growing a lot earlier than the other municipalities, which may stem to its location as a port city.
 
-q <- ggplot(data = object2, aes(Year))
-for(i in 1:10){
-  q <- q + geom_line(aes_string(y = outputs[i], color=shQuote(outputs[i])), size = 1)
-}
-q
+How does this compare to the output of the provinces of places like Tibet or Inner Mongolia, considered autonomous regions because they have a majority-minority population. Let's take a look at their output for the 5 provinces. 
 
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+autonomousRegions <- select(object2, Xinjiang_Output, Ningxia_Output, Tibet_Output, Guangxi_Output, InnerMongolia_Output, Year)
+autonomousRegions <- melt(autonomousRegions, id="Year")
+part2map2 <- ggplot(data=autonomousRegions, aes(x=Year, y=value, color=variable)) + geom_line()
+part2map2
 ```
+
+While there are a lot of missing values, the most notable thing is that aside from 
+
+if you're noticing that the dataset has a lot of missing values, you are correct! Since our dataset was sourced from a private source, some of the values are missing. It could be that missing values are more prevelant for smaller provinces? How can we figure this out? With R, of course. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+columnNames <- colnames(object2)  #get column names and store in vector
+enterprises <- columnNames[grep("Enterprise", columnNames)]  #subset the data to only get the enterprise names
+province_names <- gsub("_.*$","", enterprises) #trim the vector to get only the province names
+outputs <- columnNames[grep("Output", columnNames)] #subset the data to only get the output names
+
+
+data2017 <-subset(object2, Year == "2017")  #subset data for the 2017 year
+data2017 <- data2017[,enterprises]          #get only the enterprise data
+data2017 <- as.numeric(data2017[1,])      #store the vector as numeric vector
+df2017 <- data.frame(province_names,data2017) #create data from with province names and enterprise data 
+colourCount = length(unique(df2017$province_names))  #get number of unique colors to ramp color set
+getPalette = colorRampPalette(brewer.pal(3, "Set1")) #create a palette 
+
+
+enterprises_bar <- ggplot(df2017, aes(y = data2017,x= province_names, fill = province_names)) + #create plot
+  geom_bar(stat ="identity") +                                                                  
+  scale_fill_manual(values = getPalette(colourCount)) +   #give bars unique colors                      
+  theme(axis.text.x=element_text(angle=-45, vjust=0.5, hjust=0), legend.position="none") +   #angle province
+  labs(title="Number of Enterprises in China 2017",               #title for x,y, and main
+                x ="Provinces/Municipalities", y = "Amount of Enterprises")
+
+
+data2011_enterprise <-subset(object2, Year == "2011")  #subset data for 2011 year
+data2011_enterprise <- data2011_enterprise[,enterprises]   #get only enterprise data
+data2011_enterprise <- as.numeric(data2011_enterprise[1,])  #store the vector as numeric vector
+df2011_enterprise <- data.frame(province_names,data2011_enterprise)  #create data from with names and data
+colourCount = length(unique(df2011_enterprise$province_names)) #get number of unique colors to ramp color set
+getPalette = colorRampPalette(brewer.pal(3, "Set1"))  #create color paletee
+
+enterprises_bar2011 <- ggplot(df2011_enterprise, aes(y = data2011_enterprise,x= province_names, fill = province_names)) +  #plot 
+  geom_bar(stat ="identity") + 
+  scale_fill_manual(values = getPalette(colourCount)) + #get unique colors to bars
+  theme(axis.text.x=element_text(angle=-45, vjust=0.5, hjust=0), legend.position="none") + 
+  labs(title="Number of Enterprises in China 2011", #title
+       x ="Provinces/Municipalities", y = "Amount of Enterprises")
+
+data2011_output <-subset(object2, Year == "2011")  #subset data for 2011
+data2011_output <- data2011_output[,outputs]   #get only the output data
+data2011_output <- as.numeric(data2011_output[1,])  #store the vector as numeric vector
+df2011_output <- data.frame(province_names,data2011_output) #create data frame from names and output
+colourCount2 = length(unique(df2011_output$province_names)) #get number of unique colors to ramp color set
+getPalette2 = colorRampPalette(brewer.pal(3, "Set1"))  #create color palette
+output_bar <- ggplot(df2011_output, aes(y = data2011_output,x= province_names, fill = province_names)) + #plot
+  geom_bar(stat ="identity") + 
+  scale_fill_manual(values = getPalette(colourCount)) + #give color to bars
+  theme(axis.text.x=element_text(angle=-45, vjust=0.5, hjust=0), legend.position="none") + #angle names 
+  labs(title="GDP in China 2011", #title 
+     x ="Provinces/Municipalities", y = "GDP (RMB)")
+```
+```{r  echo=FALSE, message=FALSE, warning=FALSE}
+# print out number of Enterprises in 2017
+enterprises_bar
+```
+
+This graph shows the number of enterprises or conglomerates in each province/municipalities in 2017. According to the graph, Guangdong, Jiangsu, Shandong, and Zhejiang are the top provinces which hold the most enterprises in 2017. Which coincides with the idea that these provinces do the most sales in the country. The reason why I was interested in viewing the number of enterprises in each province because it is easier to see which province may be doing the most business and which provinces are doing less business and has less business activity. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#print out number of Enterprises in 2011
+enterprises_bar2011
+```
+
+This graph shows the number of enterprises in each province in 2011. The reason why I chose 2011 is because when I was looking for the GDP for each province in the most recent years, there were a lot of data missing. To my discretion, I chose 2011 as there were a good amount of data in both the number of enterprises in each province, as well as providing the GDP for each province. By having the same year for both data, it is much easier to compare the two variables. In 2011,  the same provinces hold most of the enterprises Guangdong, Jiangsu, Shandong, and Zhejiang. Let's see if the same provinces have the highest GDP of China.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#print out GDP in 2011
+output_bar
+```
+
+Looking at the GDP in China 2011, we see that the same 4 provinces also have the greatest GDP In China. The only thing that is interesting is that even though Zhejiang has similar amount of enterprises as Shandong, Zhejiang has a lower GDP rate. 
+
+
 
