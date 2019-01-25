@@ -5,14 +5,18 @@ date: "January 16, 2019"
 output: html_document
 ---
 
+
 ```{r setup, warning=FALSE, include=FALSE}
+#Loads tidyverse and reads the csv files to be used in the code
 library(tidyverse)
 object1=read.csv("China_EO_49to17.csv")
 object2=as_tibble(object1)
 popdata=read.csv("china_pop.csv")
 "Sources: http://www.epschinadata.com/auth/platform.html?sid=BCB36A90347A70439799CB17D162870D"
 ```
+
 ```{r function, echo = FALSE}
+#Writes a function that takes the output ratio of two provinces of our choice
 ratio <- function(data, x, y){
   grab <- select(data, Year, x, y) %>%
     na.omit()
@@ -26,6 +30,7 @@ SH <- ratio(object1, "Shanghai_Output", "Hunan_Output")
 ```
 
 ```{r graph, echo = FALSE}
+#Plots the above function values into a plot to compare the two provinces 
 line_plot <- geom_line(aes(x= Year, y=Output_Ratio))
 ggplot(data = LG) + line_plot + ggtitle('Liaoning/Guangdong Output Ratio')
 ggplot(data = BT) + line_plot + ggtitle('Beijing/Tianjin Output Ratio')
@@ -33,10 +38,11 @@ ggplot(data = SH) + line_plot + ggtitle('Shanghai/Hunan Output Ratio')
 ```
 
 ```{r shares, echo = FALSE}
+#Select province data that ends with output and set all NA values to 0 and create sum of the national output
 output_table <- select(object2, Year,  ends_with("_Output"))
 output_table[is.na(output_table)] = 0
 output_table <- mutate(output_table, National_Output = rowSums(output_table))
-#Doesn't work when we input data to create shares
+#Writes the function to find the share of the total
 shares <- function(data, x){
 grab <- select(output_table, Year, x, "National_Output")
   division = grab[ ,x]/grab[, "National_Output"]
@@ -44,11 +50,13 @@ grab <- select(output_table, Year, x, "National_Output")
   com <- mutate(output_table, Share_Ratio = Share_Ratio)
   com
 }
+
+#Calls the share of the total of the selected provinces
 Beijing_Share <- shares(output_table, "Beijing_Output")
 Shaanxi_Share <- shares(output_table, "Shaanxi_Output")
 Guangxi_Share <- shares(output_table, "Guangxi_Output")
 
-#doesnt plot out the data
+#Plots out the share ratio of the data
 ggplot(data = Beijing_Share) +
   geom_line(aes(x = Year, y = Share_Ratio)) + ggtitle('Beijing Share of Total')
 ggplot(data = Shaanxi_Share) +
@@ -59,6 +67,7 @@ ggplot(data = Guangxi_Share) +
 ```
 
 ```{r Output_Enterprises, echo = FALSE}
+#Writes a function to create a output enterprise ratio
 Output_Enterprise_ratio <- function(data,  x, y){
   grab <- select(data, Year, x, y) %>%
     na.omit()
@@ -67,10 +76,12 @@ Output_Enterprise_ratio <- function(data,  x, y){
   compare
 }
 
+#care
 BJOE <- Output_Enterprise_ratio(object1, "Beijing_Output", "Beijing_Enterprise")
 HJOE <- Output_Enterprise_ratio(object1, "Heilongjiang_Output", "Heilongjiang_Enterprise")
 LNOE <- Output_Enterprise_ratio(object1, "Liaoning_Output", "Liaoning_Enterprise")
 
+#Plots the output enterprise ratio of the selected provinces
 ggplot(data = BJOE) +
   geom_line(aes(x = Year, y = Output_Enterprise)) + ggtitle("Beijing Output/Enterprise")
 ggplot(data = HJOE) +
@@ -80,29 +91,182 @@ ggplot(data = LNOE) +
 ```
 
 ```{r fourth, echo = FALSE}
+#Compares the 4 provinces population per 10,000 persons through plotting them next to each other
 ggplot(data = popdata) +
   geom_line(aes(x = Year, y = Liaoning_Province, color = "Liaoning_Province")) + 
-  geom_line(aes(x = Year, y = Hebei_Province, color = "Hebei_Province")) +
-  geom_line(aes(x = Year, y = Shanxi_Province, color = "Shanxi_Province")) + ylab("Population (10,000 Persons)") + ggtitle("China Province Populations")
+  geom_line(aes(x = Year, y = Shandong_Province, color = "Shandong_Province")) +
+  geom_line(aes(x = Year, y = Shaanxi_Province, color = "Shaanxi_Province")) +
+  geom_line(aes(x = Year, y = Guangdong_Province, color = "Guangdong_Province")) + 
+  ylab("Population (10,000 Persons)") + ggtitle("China Province Populations")
 
-#Population/Enterprises
+#Filters the data by year after 1999 and writes a function that calculates the population per enterprise ratio
 filtered_pop <- filter(popdata, Year >= "2000")
 filtered_Ent <- filter(object1, Year >= "2000")
 Population_Enterprise_ratio <- function(data1, data2, y, x){
   Pop_Grab <- select(data1, Year, x) %>%
     na.omit()
   Enterprise_Grab <- select(data2, Year, y)
-  Cratio <- Enterprise_Grab[, y]/Pop_Grab[, x]
+  Cratio <- Pop_Grab[, x]/Enterprise_Grab[, y]
   compare <-mutate(Enterprise_Grab, Population_Enterprise = Cratio)
   compare
 }
 
+#Calls the population per enterprise ratio and plots it out 
 LiaoPopEnt <- Population_Enterprise_ratio(filtered_pop, filtered_Ent, "Liaoning_Enterprise", "Liaoning_Province")
 ggplot(data = LiaoPopEnt) + 
-  geom_line(aes(x = Year, y = Population_Enterprise)) + ggtitle("Population per Enterprise")
+  geom_line(aes(x = Year, y = Population_Enterprise)) + ggtitle("Liaoning Population per Enterprise")
 ```
 
+```{r fifth, echo = FALSE}
+#Writes a function for the enterprise per population ratio
+Enterprise_Population_ratio <- function(data1, data2, y, x){
+  Pop_Grab <- select(data1, Year, x) %>%
+    na.omit()
+  Enterprise_Grab <- select(data2, Year, y)
+  Cratio <- Enterprise_Grab[, y]/Pop_Grab[, x]
+  compare <-mutate(Enterprise_Grab, Enterprise_Population = Cratio)
+  compare
+}
 
+#Calls the function with using the desired provinces
+LEP <- Enterprise_Population_ratio(filtered_pop, filtered_Ent, "Liaoning_Enterprise", "Liaoning_Province")
+SEP <- Enterprise_Population_ratio(filtered_pop, filtered_Ent, "Shandong_Enterprise", "Shandong_Province")
+SHEP <- Enterprise_Population_ratio(filtered_pop, filtered_Ent, "Shaanxi_Enterprise", "Shaanxi_Province")
+GEP <- Enterprise_Population_ratio(filtered_pop, filtered_Ent, "Guangdong_Enterprise", "Guangdong_Province")
 
+#Plots the enterprise per population ratio as comparison of Shandong and Liaoning
+ggplot() + geom_line(data = LEP, aes(x = Year, y = Enterprise_Population, color = "Liaoning")) + 
+  geom_line(data = SEP, aes(x = Year, y = Enterprise_Population, color = "Shandong")) +
+  ggtitle("Enterprise per Population")
+
+#Plots the enterprise per population ratio as comparison of Shaanxi and Guangdong
+ggplot() + geom_line(data = SHEP, aes(x = Year, y = Enterprise_Population, color = "Shaanxi")) + 
+  geom_line(data = GEP, aes(x = Year, y = Enterprise_Population, color = "Guangdong")) +
+  ggtitle("Enterprise per Population")
+
+#This unlists the data frame so it can be used in the correlation test 
+liao_cor <- as.numeric(unlist(select(LEP, "Enterprise_Population")))
+shan_cor <- as.numeric(unlist(select(SEP, "Enterprise_Population")))
+shaanxi_cor <- as.numeric(unlist(select(SHEP, "Enterprise_Population")))
+guang_cor <- as.numeric(unlist(select(GEP, "Enterprise_Population")))
+
+#Runs a correlation test of the comparisons to see if they are correlated
+liao_shan_cor <- cor.test(liao_cor, shan_cor)
+shaanxi_guang_cor <- cor.test(shaanxi_cor, guang_cor)
+```
+If the p Value is less than 0.05, we reject the null hypothesis that the true correlation is zero (meaning that they are independent). The p Value for the Liaoning/Shandong test is 9.819e-05, so we can conclude that the Enterprise/Population ratio for Shandong is correlated to the Enterprise/Population Ratio of Liaoning. As to the Shaanxi/Guangdong test, the p Value is 0.0143116, therefore we can conclude that there is a correlation between the Enterprise/Population in Shaanxi and Guangdong.
+
+```{r sixth, echo = FALSE}
+#Set all NA values in the data to be 0 so it would still have an output even with NA values
+filtered_pop[is.na(filtered_pop)] = 0
+filtered_Ent[is.na(filtered_Ent)] = 0
+
+#North China Region
+N_Ent <- select(filtered_Ent, "Beijing_Enterprise", "Tianjin_Enterprise", "InnerMongolia_Enterprise", "Hebei_Enterprise", "Shanxi_Enterprise")
+N_Out <- select(filtered_Ent, "Beijing_Output", "Tianjin_Output", "InnerMongolia_Output", "Hebei_Output", "Shanxi_Output")
+N_Pop <- select(filtered_pop, "Beijing","Tianjin", "Hebei_Province", "Shanxi_Province", "InnerMongolia")
+
+#Aggregate population for North region by year and create North Region aggregate table
+N_Ent_Sum <- rowSums(N_Ent)
+N_frame <- data.frame("Year" = 2000:2017, "North_China_Enterprises" = N_Ent_Sum)
+
+#Aggregate Output for North region by year and add it to North Region table
+N_Out_Sum <- rowSums(N_Out)
+N_frame_2 <- mutate(N_frame, "North_China_Output" = N_Out_Sum)
+
+#Aggregate Population for North region by year and add it to North Region table
+N_Pop_Sum <- rowSums(N_Out)
+N_frame_final <- mutate(N_frame_2, "North_China_Pop" = N_Pop_Sum)
+
+#Northeast China Region
+NE_Ent <- select(filtered_Ent, "Liaoning_Enterprise", "Jilin_Enterprise", "Heilongjiang_Enterprise")
+NE_Out <- select(filtered_Ent, "Liaoning_Output", "Jilin_Output", "Heilongjiang_Output")
+NE_Pop <- select(filtered_pop, "Liaoning_Province", "Jilin_Province", "Heilongjiang_Province")
+
+#Aggregate population for Northeast region by year and create Northeast Region aggregate table
+NE_Ent_Sum <- rowSums(NE_Ent)
+NE_frame <- data.frame("Northeast_China_Enterprises" = NE_Ent_Sum)
+
+#Aggregate Output for Northeast region by year and add it to Northeast Region table
+NE_Out_Sum <- rowSums(NE_Out)
+NE_frame_2 <- mutate(NE_frame, "Northeast_China_Output" = NE_Out_Sum)
+
+#Aggregate Population for Northeast region by year and add it to Northeast Region table
+NE_Pop_Sum <- rowSums(NE_Out)
+NE_frame_final <- mutate(NE_frame_2, "Northeast_China_Pop" = NE_Pop_Sum)
+
+#East China Region
+E_Ent <- select(filtered_Ent, "Shanghai_Enterprise", "Jiangsu_Enterprise", "Zhejiang_Enterprise", "Anhui_Enterprise", "Fujian_Enterprise", "Jiangxi_Enterprise", "Shandong_Enterprise")
+E_Out <- select(filtered_Ent, "Shanghai_Output", "Jiangsu_Output", "Zhejiang_Output", "Anhui_Output", "Fujian_Output", "Jiangxi_Output", "Shandong_Output")
+E_Pop <- select(filtered_pop, "Shanghai", "Jiangsu_Province", "Zhejiang_Province", "Anhui_Province", "Fujian_Province", "Jiangxi_Province", "Shandong_Province")
+
+#Aggregate population for East region by year and create East Region aggregate table
+E_Ent_Sum <- rowSums(E_Ent)
+E_frame <- data.frame("East_China_Enterprises" = E_Ent_Sum)
+
+#Aggregate Output for East region by year and add it to East Region table
+E_Out_Sum <- rowSums(E_Out)
+E_frame_2 <- mutate(E_frame, "East_China_Output" = E_Out_Sum)
+
+#Aggregate Population for East region by year and add it to East Region table
+E_Pop_Sum <- rowSums(E_Out)
+E_frame_final <- mutate(E_frame_2, "East_China_Pop" = E_Pop_Sum)
+
+#South Central China Region
+SCC_Ent <- select(filtered_Ent, "Henan_Enterprise", "Hubei_Enterprise", "Hunan_Enterprises", "Guangdong_Enterprise", "Guangxi_Enterprise", "Hainan_Enterprise")
+SCC_Out <- select(filtered_Ent, "Henan_Output", "Hubei_Output", "Hunan_Output", "Guangdong_Output", "Guangxi_Output", "Hainan_Output")
+SCC_Pop <- select(filtered_pop, "Henan_Province", "Hubei_Province", "Hunan_Province", "Guangdong_Province", "Guangxi", "Hainan_Province")
+
+#Aggregate population for South Central region by year and create South Central Region aggregate table
+SCC_Ent_Sum <- rowSums(SCC_Ent)
+SCC_frame <- data.frame("South_Central_China_Enterprises" = SCC_Ent_Sum)
+
+#Aggregate Output for South Central region by year and add it to South Central Region table
+SCC_Out_Sum <- rowSums(SCC_Out)
+SCC_frame_2 <- mutate(SCC_frame, "South_Central_China_Output" = SCC_Out_Sum)
+
+#Aggregate Population for South Central region by year and add it to South Central Region table
+SCC_Pop_Sum <- rowSums(SCC_Out)
+SCC_frame_final <- mutate(SCC_frame_2, "South_Central_China_Pop" = SCC_Pop_Sum)
+
+#Southwest China Region
+SW_Ent <- select(filtered_Ent, "Chongqing_Enterprise", "Sichuan_Enterprise", "Guizhou_Enterprise", "Yunnan_Enterprise", "Tibet_Enterprise")
+SW_Out <- select(filtered_Ent, "Chongqing_Output", "Sichuan_Output", "Guizhou_Output", "Yunnan_Output", "Tibet_Output")
+SW_Pop <- select(filtered_pop, "Chongqing", "Sichuan_Province", "Guizhou_Province", "Yunnan_Province", "Tibet")
+
+#Aggregate population for Southwest China region by year and create Southwest Region aggregate table
+SW_Ent_Sum <- rowSums(SW_Ent)
+SW_frame <- data.frame("Southwest_China_Enterprises" = SW_Ent_Sum)
+
+#Aggregate Output for Southwest region by year and add it to Southwest Region table
+SW_Out_Sum <- rowSums(SW_Out)
+SW_frame_2 <- mutate(SW_frame, "Southwest_China_Output" = SW_Out_Sum)
+
+#Aggregate Population for Southwest region by year and add it to Southwest Region table
+SW_Pop_Sum <- rowSums(SW_Out)
+SW_frame_final <- mutate(SW_frame_2, "Southwest_China_Pop" = SW_Pop_Sum)
+
+#Northwest China Region
+NW_Ent <- select(filtered_Ent, "Shaanxi_Enterprise", "Gansu_Enterprise", "Qinghai_Enterprise", "Ningxia_Enterprise", "Xinjiang_Enterprise")
+NW_Out <- select(filtered_Ent, "Shaanxi_Output", "Gansu_Output", "Qinghai_Output", "Ningxia_Output", "Xinjiang_Output")
+NW_Pop <- select(filtered_pop, "Shaanxi_Province", "Gansu_Province", "Qinghai_Province", "Ningxia", "Xinjiang")
+
+#Aggregate population for Northwest region by year and create Northwest Region aggregate table
+NW_Ent_Sum <- rowSums(NW_Ent)
+NW_frame <- data.frame("Northwest_China_Enterprises" = NW_Ent_Sum)
+
+#Aggregate Output for Northwest region by year and add it to Northwest Region table
+NW_Out_Sum <- rowSums(NW_Out)
+NW_frame_2 <- mutate(NW_frame, "Northwest_China_Output" = NW_Out_Sum)
+
+#Aggregate Population for Northwest region by year and add it to Northwest Region table
+NW_Pop_Sum <- rowSums(NW_Out)
+NW_frame_final <- mutate(NW_frame_2, "Northwest_China_Pop" = NW_Pop_Sum)
+
+#Combine all of the final frames to put it into one frame
+final_frame <- cbind(N_frame_final, NE_frame_final, E_frame_final, SCC_frame_final,  SW_frame_final, NW_frame_final)
+head(final_frame)
+
+```
 
 
