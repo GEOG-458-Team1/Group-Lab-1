@@ -9,6 +9,8 @@ output: html_document
 library(tidyverse)
 object1=read.csv("China_EO_49to17.csv")
 object2=as_tibble(object1)
+popdata=read.csv("china_pop.csv")
+"Sources: http://www.epschinadata.com/auth/platform.html?sid=BCB36A90347A70439799CB17D162870D"
 ```
 ```{r function, echo = FALSE}
 ratio <- function(data, x, y){
@@ -25,16 +27,15 @@ SH <- ratio(object1, "Shanghai_Output", "Hunan_Output")
 
 ```{r graph, echo = FALSE}
 line_plot <- geom_line(aes(x= Year, y=Output_Ratio))
-ggplot(data = LG) + line_plot
-ggplot(data = BT) + line_plot
-ggplot(data = SH) + line_plot
+ggplot(data = LG) + line_plot + ggtitle('Liaoning/Guangdong Output Ratio')
+ggplot(data = BT) + line_plot + ggtitle('Beijing/Tianjin Output Ratio')
+ggplot(data = SH) + line_plot + ggtitle('Shanghai/Hunan Output Ratio')
 ```
 
 ```{r shares, echo = FALSE}
 output_table <- select(object2, Year,  ends_with("_Output"))
 output_table[is.na(output_table)] = 0
 output_table <- mutate(output_table, National_Output = rowSums(output_table))
-
 #Doesn't work when we input data to create shares
 shares <- function(data, x){
 grab <- select(output_table, Year, x, "National_Output")
@@ -43,30 +44,65 @@ grab <- select(output_table, Year, x, "National_Output")
   com <- mutate(output_table, Share_Ratio = Share_Ratio)
   com
 }
+Beijing_Share <- shares(output_table, "Beijing_Output")
+Shaanxi_Share <- shares(output_table, "Shaanxi_Output")
+Guangxi_Share <- shares(output_table, "Guangxi_Output")
 
-shares(output_table, "Beijing_Output")
-shares(output_table, "Shaanxi_Output")
-shares(output_table, "Guangxi_Output")
-'
-grab <- select(output_table, Year, "Beijing_Output", "National_Output") %>% na.omit()
-  share_ratio <- grab[, "Beijing_Output"]/grab[, "National_Output"]
-  output_table$Share <- share_ratio
-  output_table
-
-grab <- select(output_table, Year, "Guangxi_Output", "National_Output") %>% na.omit()
-  share_ratio <- grab[, "Guangxi_Output"]/grab[, "National_Output"]
-  output_table$Share2 <- share_ratio
-  output_table
-  
-grab <- select(output_table, Year, "Shaanxi_Output", "National_Output") %>% na.omit()
-  share_ratio <- grab[, "Shaanxi_Output"]/grab[, "National_Output"]
-  output_table$Share3 <- share_ratio
-  output_table
-'
 #doesnt plot out the data
-ggplot(data = output_table) +
-  geom_line(aes(x = Year, y = National_Output)) 
+ggplot(data = Beijing_Share) +
+  geom_line(aes(x = Year, y = Share_Ratio)) + ggtitle('Beijing Share of Total')
+ggplot(data = Shaanxi_Share) +
+  geom_line(aes(x = Year, y = Share_Ratio)) + ggtitle('Shaanxi Share of Total')
+ggplot(data = Guangxi_Share) +
+  geom_line(aes(x = Year, y = Share_Ratio)) + ggtitle('Guangxi Share of Total')
 
-
-'shares(output_table, "Beijing_Output", "National_Output")'
 ```
+
+```{r Output_Enterprises, echo = FALSE}
+Output_Enterprise_ratio <- function(data,  x, y){
+  grab <- select(data, Year, x, y) %>%
+    na.omit()
+  Cratio <- grab[, x]/grab[, y]
+  compare <-mutate(grab, Output_Enterprise = Cratio)
+  compare
+}
+
+BJOE <- Output_Enterprise_ratio(object1, "Beijing_Output", "Beijing_Enterprise")
+HJOE <- Output_Enterprise_ratio(object1, "Heilongjiang_Output", "Heilongjiang_Enterprise")
+LNOE <- Output_Enterprise_ratio(object1, "Liaoning_Output", "Liaoning_Enterprise")
+
+ggplot(data = BJOE) +
+  geom_line(aes(x = Year, y = Output_Enterprise)) + ggtitle("Beijing Output/Enterprise")
+ggplot(data = HJOE) +
+  geom_line(aes(x = Year, y = Output_Enterprise)) + ggtitle("Heilongjiang Output/Enterprise")
+ggplot(data = LNOE) +
+  geom_line(aes(x = Year, y = Output_Enterprise)) + ggtitle("Liaoning Output/Enterprise")
+```
+
+```{r fourth, echo = FALSE}
+ggplot(data = popdata) +
+  geom_line(aes(x = Year, y = Liaoning_Province, color = "Liaoning_Province")) + 
+  geom_line(aes(x = Year, y = Hebei_Province, color = "Hebei_Province")) +
+  geom_line(aes(x = Year, y = Shanxi_Province, color = "Shanxi_Province")) + ylab("Population (10,000 Persons)") + ggtitle("China Province Populations")
+
+#Population/Enterprises
+filtered_pop <- filter(popdata, Year >= "2000")
+filtered_Ent <- filter(object1, Year >= "2000")
+Population_Enterprise_ratio <- function(data1, data2, y, x){
+  Pop_Grab <- select(data1, Year, x) %>%
+    na.omit()
+  Enterprise_Grab <- select(data2, Year, y)
+  Cratio <- Enterprise_Grab[, y]/Pop_Grab[, x]
+  compare <-mutate(Enterprise_Grab, Population_Enterprise = Cratio)
+  compare
+}
+
+LiaoPopEnt <- Population_Enterprise_ratio(filtered_pop, filtered_Ent, "Liaoning_Enterprise", "Liaoning_Province")
+ggplot(data = LiaoPopEnt) + 
+  geom_line(aes(x = Year, y = Population_Enterprise)) + ggtitle("Population per Enterprise")
+```
+
+
+
+
+
