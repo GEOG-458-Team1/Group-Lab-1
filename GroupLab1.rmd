@@ -57,26 +57,82 @@ cities industrial output side-by side
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-majorCities <- select(object2, Beijing_Output, Shanghai_Output, Tianjin_Output, Chongqing_Output, Year) 
+majorCities <- select(object2, Beijing_Output, Shanghai_Output, Tianjin_Output, Chongqing_Output, Year) %>% filter(Year > 1980, Year < 2011)
 majorCities <- melt(majorCities, id="Year")
-part2map1 <-ggplot(data=majorCities,aes(x=Year, y=value, color=variable)) + geom_line()
+majorCities$variable <- gsub("_.*$","", majorCities$variable)
+
+# Added map as a line graph, edited title, axis, and Legend
+# edited subtitles as well
+part2map1 <-ggplot(data=majorCities,aes(x=Year, y=value, color=variable)) + 
+  geom_line(size = 1.3) +
+  labs(title = "Output for Municipalities, 1980-2011", subtitle="Source: All China Center",y="Output (in One Hundred Million Chinese Yuan)", color="Province")
+
 part2map1
 ```  
 
-As you can see, the rate of growth is massive starting around 1990. This is consistent with the rise of manufacturing in China and also the easing of regulations for private businesses. One thing that stands out is that Shanghai started growing a lot earlier than the other municipalities, which may stem to its location as a port city.
+As you can see, the rate of growth is massive starting around 1980. This is consistent with the rise of manufacturing in China and also the easing of regulations for private businesses that started with Deng Xiaoping. One thing that stands out is that Shanghai started growing a lot earlier than the other municipalities, which may stem to its location as a port city. Another thing that was surprising to me is that Beijing is only third in its output growth. As the capital, I expected it to be first, or at least ahead of Tianjin, which is second. My guess is that both Shanghai and Tianjin overtake Shanghai in high-output fields such as shipping or manufacturing. This could be subject for further research. 
 
 How does this compare to the output of the provinces of places like Tibet or Inner Mongolia, considered autonomous regions because they have a majority-minority population. Let's take a look at their output for the 5 provinces. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-autonomousRegions <- select(object2, Xinjiang_Output, Ningxia_Output, Tibet_Output, Guangxi_Output, InnerMongolia_Output, Year)
+# Creates dataset relevant to autonomous regions
+autonomousRegions <- select(object2, Xinjiang_Output, Ningxia_Output, Tibet_Output, Guangxi_Output, InnerMongolia_Output, Year) %>% filter(Year > 1979, Year < 2012)
+
+#melts table to allow it to work with ggplot
 autonomousRegions <- melt(autonomousRegions, id="Year")
-part2map2 <- ggplot(data=autonomousRegions, aes(x=Year, y=value, color=variable)) + geom_line()
+
+# Strips out suffix in regions
+autonomousRegions$variable <- gsub("_.*$","", autonomousRegions$variable)
+
+# Makes line graph
+part2map2 <- ggplot(data=autonomousRegions, aes(x=Year, y=value, color=variable)) + geom_line() + geom_line(size = 1.3) +
+  # Graph aesthetic changes
+  labs(title = "Output for Autonomous Regions, 1980-2011", subtitle="Source: All China Center",y="Output (in One Hundred Million Chinese Yuan)", color="Province")
 part2map2
 ```
 
-While there are a lot of missing values, the most notable thing is that aside from 
+Unlike the municipalities, which started growing around the 1980s, the autonomous regions have been significantly slower in increasing output. These regions also have much lower outputs than the municipalities in China. In particular, there are particular have-nots in Tibet and Ningxia, in which their output is much lower than the other autonomous regions. 
 
-if you're noticing that the dataset has a lot of missing values, you are correct! Since our dataset was sourced from a private source, some of the values are missing. It could be that missing values are more prevelant for smaller provinces? How can we figure this out? With R, of course. 
+ Since our dataset was sourced from a private source (the All China Center), some of the values are missing for certain years. These are usually placed at the either the earliest years and for recent years. It could be that missing values are more prevelant for smaller provinces, especially for regions that are in rural China or autonomous regions. How can we figure this out? With R, of course. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+part2map3 <- select(object2, ends_with("Output"))
+
+# Sorry for this map it kinda sucks compared to the others. 
+
+# Collects number of NA in each column and returns as a list
+numberOfNA <- sapply(part2map3, function(y) sum(length(which(is.na(y))))) 
+# Converts list to a dataframe
+map3data <- data_frame(numberOfNA)
+
+#Adding province name and stripping out suffixes from provinces
+map3data$province <- colnames(part2map3) 
+map3data$province <- gsub("_.*$","", map3data$province)
+
+# rename the number column to reduce confusion
+map3data <- rename(map3data, number = numberOfNA)
+
+
+# creates the plot 
+part2map3 <- ggplot(data=map3data,aes(x=reorder(province, number), y=number)) + 
+  #which is a bar chart
+  geom_bar(stat="identity", fill="steelblue") +
+  
+  # added labels that corresponds to the value (for easy viewing)
+  geom_text(aes(label=number), vjust=-0.3) + 
+  
+  # adjusts text to be more visisble and not scrunched up
+  theme(axis.text.x=element_text(angle=-90, vjust=0, hjust=0), legend.position="none") +
+  
+  # changing labels and aesthetic changes. 
+  labs(title = "Number of Missing Values", subtitle="Source: All China Center",y="Missing Values", x="Province")
+  
+part2map3
+
+
+```
+
+Looking at the graph, the provinces that have the most missing data is surprisingly neither municipalities nor the autonomous regions, but other provincies such as Guangdong, Hainan, and Sichuan provinces. It's not clear why these provinces had the most missing values, but further research into this may explain why there are so many values missing from these provinces.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 columnNames <- colnames(object2)  #get column names and store in vector
