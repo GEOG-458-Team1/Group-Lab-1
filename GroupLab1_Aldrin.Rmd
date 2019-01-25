@@ -4,7 +4,7 @@ author: "Aldrin Carbonell"
 date: "January 23, 2019"
 output: html_document
 ---
-# Introduction and Context of the Data
+# Part 1: Introduction and Context of the Data
 The following dataset contains economic information from jurisdictions in the nation of China. 
 For each province and years from 1949 to 2017, numeric values are listed: **_Enterprises_** and **_Outputs_**. Enterprises represent productive units or companies and are absolute values.
 Outputs are in units in of 100,000,000 RMB (Chinese Yuan). As for patterns of the data, Enterprises don't only have drastic decreases when companies go out of business. Companies can be bought out or merged with others, as evident with rising Output values over the years.
