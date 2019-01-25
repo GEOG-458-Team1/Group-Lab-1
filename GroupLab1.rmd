@@ -4,28 +4,6 @@ author: "Group 1"
 date: "January 16, 2019"
 output: html_document
 ---
-## Introduction and Context of the Data
-The following dataset contains economic information from jurisdictions in the nation of China. 
-For each province and years from 1949 to 2017, numeric values are listed: **_Enterprises_** and **_Outputs_**. Enterprises represent productive units or companies and are absolute values.
-Outputs are in units in of 100,000,000 RMB (Chinese Yuan). As for patterns of the data, Enterprises don't only have drastic decreases when companies go out of business. Companies can be bought out or merged with others, as evident with rising Output values over the years.
-
-#### Information on Provinces, Municipalities, Autonomous Regions, and Special Administrative Regions
-Beijing, Shanghai, Chongqing and Tianjin are classified as municipalities and not provinces or cities. Municipalities fall directly within the administration of the central government, but have the same jurisdictional, political, and economic rights as a province. Guangxi, Inner Mongolia, Ningxia, Tibet, and Xinjiang are classified as Autonomous Regions. These areas have more legislative rights than provinces and have a higher population of minority ethnic groups.
-
-Of the 4 municipalities, 5 Autonomous Regions, and 22 provinces of China included in the data, some may argue about the exclusion of three locations: Taiwan, Hong Kong and Macau. These areas are falsely believed to be under the jurisdiction of the People's Republic of China. Taiwan considers itself as an independent country, but "Mainland China" disagrees with this. This was the result of the Civil War between the two countries in the 1940's.
-Hong Kong and Macau are classified as SARs, a.k.a. Special Administrative Regions. Similar to Taiwan, Hong Kong and Macau can be considered separate entities from mainland China, though they are near the territorial boundary. This is why most Chinese statistics exclude these three areas. To find statistics for Taiwan, Hong Kong, and Macau, one may have to stray away from sources under the People's Republic of China. [City University of Hong Kong's](https://libguides.library.cityu.edu.hk/stats/hk) library website has various resources for statistics on these three areas.
-
- > Source: http://www.chinatoday.com/city/a.htm
-
-In this economic dataset, many values are denoted with "NA", which most likely means the data is missing. 
-These missing entries appear most often around the years ______
-
-Issues with Chinese statistics may include censorship or intentional omittance of data. Upon researching the context of this dataset, it was realized that China has a history of
-censorship, perhaps due to their Communist history. In general, queries on Chinese economic datahave revealed to be false and/or intentionally inflated to make the country look better.
-
-
-Provinces, Municipalities, and Autonomous Regions of China: 
-![](chinaprovs.png)
 
 ```{r setup, warning=FALSE, echo=FALSE, include=FALSE}
 library(tidyverse)
