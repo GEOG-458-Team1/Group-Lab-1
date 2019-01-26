@@ -1,0 +1,475 @@
+---
+title: "Group Lab 1"
+author: "Aldrin Carbonell, Johnny Nguyen, Justin Choi, Samuel Perng, Andy Tseng (Group 1)"
+date: "January 25, 2019"
+output: html_document
+---
+# Part 1: Introduction and Context of the Data
+The following dataset contains economic information from jurisdictions in the nation of China. 
+For each province and years from 1949 to 2017, numeric values are listed: **_Enterprises_** and **_Outputs_**. Enterprises represent productive units or companies and are absolute values.
+Outputs are in units in of 100,000,000 RMB (Chinese Yuan). As for patterns of the data, Enterprises don't only have drastic decreases when companies go out of business. Companies can be bought out or merged with others, as evident with rising Output values over the years.
+
+#### **Information on Provinces, Municipalities, Autonomous Regions, and Special Administrative Regions:**
+Beijing, Shanghai, Chongqing and Tianjin are classified as municipalities and not provinces or cities. Municipalities fall directly within the administration of the central government, but have the same jurisdictional, political, and economic rights as a province. Guangxi, Inner Mongolia, Ningxia, Tibet, and Xinjiang are classified as Autonomous Regions. These areas have more legislative rights than provinces and have a higher population of minority ethnic groups.
+
+Of the 4 municipalities, 5 Autonomous Regions, and 22 provinces of China included in the data, some may argue about the exclusion of three locations: Taiwan, Hong Kong and Macau. These areas are falsely believed to be under the jurisdiction of the People's Republic of China. Taiwan considers itself as an independent country, but "Mainland China" disagrees with this. This was the result of the Civil War between the two countries in the 1940's.
+Hong Kong and Macau are classified as SARs, a.k.a. Special Administrative Regions. Similar to Taiwan, Hong Kong and Macau can be considered separate entities from mainland China, though they are near the territorial boundary (China Today). This is why most Chinese statistics exclude these three areas. To find statistics for Taiwan, Hong Kong, and Macau, one may have to stray away from sources under the People's Republic of China. [City University of Hong Kong's](https://libguides.library.cityu.edu.hk/stats/hk) library website has various resources for statistics on these three areas.
+
+#### **Provinces, Municipalities, and Autonomous Regions of China:**
+![](chinaprovs.png)
+
+#### **Issues with Chinese Statistics:** 
+In this economic dataset, many values are denoted with "NA", which most likely means the data is missing. 
+However, it has been proven that there are broader issues with Chinese economic statistics. Issues with Chinese statistics may include censorship or intentional omittance of data. China has a history of censorship and Communism, which may partly explain this. Essentially, Chinese statistics in general have been revealed to be falsified and/or intentionally inflated to "meet economic growth quotas" (China Quarterly). An article from Cambridge explains the bias shown from certain sampling techniques used by the Chinese.
+A CIA report published in 2007 explores in detail as to why Chinese statistics are problematic. They state that
+
+> "During the past 22 years the Chinese statistical system has had its ups and downs, but even during the better years, in most fields it was not capable of collecting and processing statistics that would meet even the minimal standards for accuracy." (CIA)
+
+So, several factors contribute to the problems arising from Chinese statistics. One reform that the NBS (National Bureau of Statistics of China) enacted was to maintain close relations with the largest enterprises in industry, commerce, and construction for increased credibility.
+
+**Sources:**
+
+http://www.chinatoday.com/city/a.htm
+
+https://www.cambridge.org/core/journals/china-quarterly/article/fast-clear-and-accurate-how-reliable-are-chinese-output-and-economic-growth-statistics/8B328E63530627243D28CF537C58DC26
+
+https://www.cambridge.org/core/journals/china-quarterly/article/bias-in-chinese-economic-statistics-the-case-of-the-typical-example-investigation/016383F00E6A9744AAA6D7BBAB9D7994
+
+https://www.cia.gov/library/center-for-the-study-of-intelligence/kent-csi/vol16no4/html/v17i1a07p_0001.htm
+
+```{r setup, warning=FALSE, echo=FALSE, include=FALSE}
+# Loads tidyverse and reads the csv files to be used in the code
+library(tidyverse)
+library(reshape2)
+library(ggplot2)
+library(knitr)
+library(RColorBrewer)
+library(kableExtra)
+
+object1=read.csv("China_EO_49to17.csv")
+object2=as_tibble(object1)
+popdata=read.csv("china_pop.csv")
+"Sources: http://www.epschinadata.com/auth/platform.html?sid=BCB36A90347A70439799CB17D162870D"
+                                     
+```
+
+# Part 2: Looking at the data
+
+A couple of interesting things can be gleaned from the data. One is the fact that China is not entirely comprised of provinces.
+There are 4 cities within the dataset that comprise China's municipalities: Beijin, Tianjin, Shanghai, Chongqing. These municipalities 
+both hold the rank of both city and provinces themselves. As a result, they hold some of the highest growth. Take a look at these four
+cities industrial output side-by side
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+majorCities <- select(object2, Beijing_Output, Shanghai_Output, Tianjin_Output, Chongqing_Output, Year) %>% filter(Year > 1980, Year < 2011)
+majorCities <- melt(majorCities, id="Year")
+majorCities$variable <- gsub("_.*$","", majorCities$variable)
+
+# Added map as a line graph, edited title, axis, and Legend
+# edited subtitles as well
+part2map1 <-ggplot(data=majorCities,aes(x=Year, y=value, color=variable)) + 
+  geom_line(size = 1.3) +
+  labs(title = "Output for Municipalities, 1980-2011", subtitle="Source: All China Center",y="Output (in One Hundred Million Chinese Yuan)", color="Province")
+
+part2map1
+```  
+
+As you can see, the rate of growth is massive starting around 1980. This is consistent with the rise of manufacturing in China and also the easing of regulations for private businesses that started with Deng Xiaoping. One thing that stands out is that Shanghai started growing a lot earlier than the other municipalities, which may stem to its location as a port city. Another thing that was surprising to me is that Beijing is only third in its output growth. As the capital, I expected it to be first, or at least ahead of Tianjin, which is second. My guess is that both Shanghai and Tianjin overtake Shanghai in high-output fields such as shipping or manufacturing. This could be subject for further research. 
+
+How does this compare to the output of the provinces of places like Tibet or Inner Mongolia, considered autonomous regions because they have a majority-minority population. Let's take a look at their output for the 5 provinces. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Creates dataset relevant to autonomous regions
+autonomousRegions <- select(object2, Xinjiang_Output, Ningxia_Output, Tibet_Output, Guangxi_Output, InnerMongolia_Output, Year) %>% filter(Year > 1979, Year < 2012)
+
+#melts table to allow it to work with ggplot
+autonomousRegions <- melt(autonomousRegions, id="Year")
+
+# Strips out suffix in regions
+autonomousRegions$variable <- gsub("_.*$","", autonomousRegions$variable)
+
+# Makes line graph
+part2map2 <- ggplot(data=autonomousRegions, aes(x=Year, y=value, color=variable)) + geom_line() + geom_line(size = 1.3) +
+  # Graph aesthetic changes
+  labs(title = "Output for Autonomous Regions, 1980-2011", subtitle="Source: All China Center",y="Output (in One Hundred Million Chinese Yuan)", color="Province")
+part2map2
+```
+
+Unlike the municipalities, which started growing around the 1980s, the autonomous regions have been significantly slower in increasing output. These regions also have much lower outputs than the municipalities in China. In particular, there are particular have-nots in Tibet and Ningxia, in which their output is much lower than the other autonomous regions. 
+
+ Since our dataset was sourced from a private source (the All China Center), some of the values are missing for certain years. These are usually placed at the either the earliest years and for recent years. It could be that missing values are more prevelant for smaller provinces, especially for regions that are in rural China or autonomous regions. How can we figure this out? With R, of course. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+part2map3 <- select(object2, ends_with("Output"))
+
+# Sorry for this map it kinda sucks compared to the others. 
+
+# Collects number of NA in each column and returns as a list
+numberOfNA <- sapply(part2map3, function(y) sum(length(which(is.na(y))))) 
+# Converts list to a dataframe
+map3data <- data_frame(numberOfNA)
+
+#Adding province name and stripping out suffixes from provinces
+map3data$province <- colnames(part2map3) 
+map3data$province <- gsub("_.*$","", map3data$province)
+
+# rename the number column to reduce confusion
+map3data <- rename(map3data, number = numberOfNA)
+
+
+# creates the plot 
+part2map3 <- ggplot(data=map3data,aes(x=reorder(province, number), y=number)) + 
+  #which is a bar chart
+  geom_bar(stat="identity", fill="steelblue") +
+  
+  # added labels that corresponds to the value (for easy viewing)
+  geom_text(aes(label=number), vjust=-0.3) + 
+  
+  # adjusts text to be more visisble and not scrunched up
+  theme(axis.text.x=element_text(angle=-90, vjust=0, hjust=0), legend.position="none") +
+  
+  # changing labels and aesthetic changes. 
+  labs(title = "Number of Missing Values", subtitle="Source: All China Center",y="Missing Values", x="Province")
+  
+part2map3
+
+
+```
+
+Looking at the graph, the provinces that have the most missing data is surprisingly neither municipalities nor the autonomous regions, but other provincies such as Guangdong, Hainan, and Sichuan provinces. It's not clear why these provinces had the most missing values, but further research into this may explain why there are so many values missing from these provinces.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+columnNames <- colnames(object2)  #get column names and store in vector
+enterprises <- columnNames[grep("Enterprise", columnNames)]  #subset the data to only get the enterprise names
+province_names <- gsub("_.*$","", enterprises) #trim the vector to get only the province names
+outputs <- columnNames[grep("Output", columnNames)] #subset the data to only get the output names
+
+
+data2017 <-subset(object2, Year == "2017")  #subset data for the 2017 year
+data2017 <- data2017[,enterprises]          #get only the enterprise data
+data2017 <- as.numeric(data2017[1,])      #store the vector as numeric vector
+df2017 <- data.frame(province_names,data2017) #create data from with province names and enterprise data 
+colourCount = length(unique(df2017$province_names))  #get number of unique colors to ramp color set
+getPalette = colorRampPalette(brewer.pal(3, "Set1")) #create a palette 
+
+
+enterprises_bar <- ggplot(df2017, aes(y = data2017,x= province_names, fill = province_names)) + #create plot
+  geom_bar(stat ="identity") +                                                                  
+  scale_fill_manual(values = getPalette(colourCount)) +   #give bars unique colors                      
+  theme(axis.text.x=element_text(angle=-45, vjust=0.5, hjust=0), legend.position="none") +   #angle province
+  labs(title="Number of Enterprises in China 2017",               #title for x,y, and main
+                x ="Provinces/Municipalities", y = "Amount of Enterprises")
+
+
+data2011_enterprise <-subset(object2, Year == "2011")  #subset data for 2011 year
+data2011_enterprise <- data2011_enterprise[,enterprises]   #get only enterprise data
+data2011_enterprise <- as.numeric(data2011_enterprise[1,])  #store the vector as numeric vector
+df2011_enterprise <- data.frame(province_names,data2011_enterprise)  #create data from with names and data
+colourCount = length(unique(df2011_enterprise$province_names)) #get number of unique colors to ramp color set
+getPalette = colorRampPalette(brewer.pal(3, "Set1"))  #create color paletee
+
+enterprises_bar2011 <- ggplot(df2011_enterprise, aes(y = data2011_enterprise,x= province_names, fill = province_names)) +  #plot 
+  geom_bar(stat ="identity") + 
+  scale_fill_manual(values = getPalette(colourCount)) + #get unique colors to bars
+  theme(axis.text.x=element_text(angle=-45, vjust=0.5, hjust=0), legend.position="none") + 
+  labs(title="Number of Enterprises in China 2011", #title
+       x ="Provinces/Municipalities", y = "Amount of Enterprises")
+
+data2011_output <-subset(object2, Year == "2011")  #subset data for 2011
+data2011_output <- data2011_output[,outputs]   #get only the output data
+data2011_output <- as.numeric(data2011_output[1,])  #store the vector as numeric vector
+df2011_output <- data.frame(province_names,data2011_output) #create data frame from names and output
+colourCount2 = length(unique(df2011_output$province_names)) #get number of unique colors to ramp color set
+getPalette2 = colorRampPalette(brewer.pal(3, "Set1"))  #create color palette
+output_bar <- ggplot(df2011_output, aes(y = data2011_output,x= province_names, fill = province_names)) + #plot
+  geom_bar(stat ="identity") + 
+  scale_fill_manual(values = getPalette(colourCount)) + #give color to bars
+  theme(axis.text.x=element_text(angle=-45, vjust=0.5, hjust=0), legend.position="none") + #angle names 
+  labs(title="GDP in China 2011", #title 
+     x ="Provinces/Municipalities", y = "GDP (RMB)")
+```
+```{r  echo=FALSE, message=FALSE, warning=FALSE}
+# print out number of Enterprises in 2017
+enterprises_bar
+```
+
+This graph shows the number of enterprises or conglomerates in each province/municipalities in 2017. According to the graph, Guangdong, Jiangsu, Shandong, and Zhejiang are the top provinces which hold the most enterprises in 2017. Which coincides with the idea that these provinces do the most sales in the country. The reason why I was interested in viewing the number of enterprises in each province because it is easier to see which province may be doing the most business and which provinces are doing less business and has less business activity. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#print out number of Enterprises in 2011
+enterprises_bar2011
+```
+
+This graph shows the number of enterprises in each province in 2011. The reason why I chose 2011 is because when I was looking for the GDP for each province in the most recent years, there were a lot of data missing. To my discretion, I chose 2011 as there were a good amount of data in both the number of enterprises in each province, as well as providing the GDP for each province. By having the same year for both data, it is much easier to compare the two variables. In 2011,  the same provinces hold most of the enterprises Guangdong, Jiangsu, Shandong, and Zhejiang. Let's see if the same provinces have the highest GDP of China.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#print out GDP in 2011
+output_bar
+```
+
+Looking at the GDP in China 2011, we see that the same 4 provinces also have the greatest GDP In China. The only thing that is interesting is that even though Zhejiang has similar amount of enterprises as Shandong, Zhejiang has a lower GDP rate. 
+
+# Part 3: Modifying the Data
+
+```{r function, echo = FALSE}
+#Writes a function that takes the output ratio of two provinces of our choice
+ratio <- function(data, x, y){
+  grab <- select(data, Year, x, y) %>%
+    na.omit()
+  out_ratio <- grab[, x]/grab[, y]
+  compare <-mutate(grab, Output_Ratio = out_ratio)
+  compare
+}
+BT <- ratio(object1, "Beijing_Output", "Tianjin_Output")
+LG <- ratio(object1, "Liaoning_Output", "Guangdong_Output")
+SH <- ratio(object1, "Shanghai_Output", "Hunan_Output")
+```
+
+```{r graph, echo = FALSE}
+#Plots the above function values into a plot to compare the two provinces 
+line_plot <- geom_line(aes(x= Year, y=Output_Ratio))
+ggplot(data = LG) + line_plot + ggtitle('Liaoning/Guangdong Output Ratio')
+ggplot(data = BT) + line_plot + ggtitle('Beijing/Tianjin Output Ratio')
+ggplot(data = SH) + line_plot + ggtitle('Shanghai/Hunan Output Ratio')
+```
+
+```{r shares, echo = FALSE}
+#Select province data that ends with output and set all NA values to 0 and create sum of the national output
+output_table <- select(object2, Year,  ends_with("_Output"))
+output_table[is.na(output_table)] = 0
+output_table <- mutate(output_table, National_Output = rowSums(output_table))
+#Writes the function to find the share of the total
+shares <- function(data, x){
+grab <- select(output_table, Year, x, "National_Output")
+  division = grab[ ,x]/grab[, "National_Output"]
+  Share_Ratio = as.numeric(unlist(division))
+  com <- mutate(output_table, Share_Ratio = Share_Ratio)
+  com
+}
+
+#Calls the share of the total of the selected provinces
+Beijing_Share <- shares(output_table, "Beijing_Output")
+Shaanxi_Share <- shares(output_table, "Shaanxi_Output")
+Guangxi_Share <- shares(output_table, "Guangxi_Output")
+
+#Plots out the share ratio of the data
+ggplot(data = Beijing_Share) +
+  geom_line(aes(x = Year, y = Share_Ratio)) + ggtitle('Beijing Share of Total')
+ggplot(data = Shaanxi_Share) +
+  geom_line(aes(x = Year, y = Share_Ratio)) + ggtitle('Shaanxi Share of Total')
+ggplot(data = Guangxi_Share) +
+  geom_line(aes(x = Year, y = Share_Ratio)) + ggtitle('Guangxi Share of Total')
+
+```
+
+
+The Share of Total for the representative cities that we have chosen generally all increase in the most recent 5 years. Beijing, Shaanxi, and Guangxi all have very different levels of Share of Total. Beijing accounts for around 16% of the total output at its peak while Shaanxi and Guangxi account for around 5% or 1.6% of the total at their peak respectively. We chose these representative cities to see if the trend over time for cities with very different levels of output would be the same.
+
+```{r Output_Enterprises, echo = FALSE}
+#Writes a function to create a output enterprise ratio
+Output_Enterprise_ratio <- function(data,  x, y){
+  grab <- select(data, Year, x, y) %>%
+    na.omit()
+  Cratio <- grab[, x]/grab[, y]
+  compare <-mutate(grab, Output_Enterprise = Cratio)
+  compare
+}
+
+#care
+BJOE <- Output_Enterprise_ratio(object1, "Beijing_Output", "Beijing_Enterprise")
+HJOE <- Output_Enterprise_ratio(object1, "Heilongjiang_Output", "Heilongjiang_Enterprise")
+LNOE <- Output_Enterprise_ratio(object1, "Liaoning_Output", "Liaoning_Enterprise")
+
+#Plots the output enterprise ratio of the selected provinces
+ggplot(data = BJOE) +
+  geom_line(aes(x = Year, y = Output_Enterprise)) + ggtitle("Beijing Output/Enterprise")
+ggplot(data = HJOE) +
+  geom_line(aes(x = Year, y = Output_Enterprise)) + ggtitle("Heilongjiang Output/Enterprise")
+ggplot(data = LNOE) +
+  geom_line(aes(x = Year, y = Output_Enterprise)) + ggtitle("Liaoning Output/Enterprise")
+```
+
+
+All three output-per-enterprise graphs show that enterprise is relatively massive compared to output until the year 2000, where the ratio begins to be around .5-1. The ratio then grows rapidly and it appears that it will continue its growth. There are periods of non growth post 2000 for all the representative cities, but it is usually very minor in comparison to the growth and the overall trend is still growth for the ratio.  
+
+```{r fourth, echo = FALSE}
+#Compares 4 provinces population per 10,000 persons through plotting them next to each other
+ggplot(data = popdata) +
+  geom_line(aes(x = Year, y = Liaoning_Province, color = "Liaoning_Province")) + 
+  geom_line(aes(x = Year, y = Shandong_Province, color = "Shandong_Province")) +
+  geom_line(aes(x = Year, y = Shaanxi_Province, color = "Shaanxi_Province")) +
+  geom_line(aes(x = Year, y = Guangdong_Province, color = "Guangdong_Province")) + 
+  ylab("Population (10,000 Persons)") + ggtitle("China Province Populations")
+
+#Filters the data by year after 1999 and writes a function that calculates the population per enterprise ratio
+filtered_pop <- filter(popdata, Year >= "2000")
+filtered_Ent <- filter(object1, Year >= "2000")
+Population_Enterprise_ratio <- function(data1, data2, y, x){
+  Pop_Grab <- select(data1, Year, x) %>%
+    na.omit()
+  Enterprise_Grab <- select(data2, Year, y)
+  Cratio <- Pop_Grab[, x]/Enterprise_Grab[, y]
+  compare <-mutate(Enterprise_Grab, Population_Enterprise = Cratio)
+  compare
+}
+
+#Calls the population per enterprise ratio and plots it out 
+LiaoPopEnt <- Population_Enterprise_ratio(filtered_pop, filtered_Ent, "Liaoning_Enterprise", "Liaoning_Province")
+ggplot(data = LiaoPopEnt) + 
+  geom_line(aes(x = Year, y = Population_Enterprise)) + ggtitle("Liaoning Population per Enterprise")
+```
+
+```{r fifth, echo = FALSE}
+#Writes a function for the enterprise per population ratio
+Enterprise_Population_ratio <- function(data1, data2, y, x){
+  Pop_Grab <- select(data1, Year, x) %>%
+    na.omit()
+  Enterprise_Grab <- select(data2, Year, y)
+  Cratio <- Enterprise_Grab[, y]/Pop_Grab[, x]
+  compare <-mutate(Enterprise_Grab, Enterprise_Population = Cratio)
+  compare
+}
+
+#Calls the function with using the desired provinces
+LEP <- Enterprise_Population_ratio(filtered_pop, filtered_Ent, "Liaoning_Enterprise", "Liaoning_Province")
+SEP <- Enterprise_Population_ratio(filtered_pop, filtered_Ent, "Shandong_Enterprise", "Shandong_Province")
+SHEP <- Enterprise_Population_ratio(filtered_pop, filtered_Ent, "Shaanxi_Enterprise", "Shaanxi_Province")
+GEP <- Enterprise_Population_ratio(filtered_pop, filtered_Ent, "Guangdong_Enterprise", "Guangdong_Province")
+
+#Plots the enterprise per population ratio as comparison of Shandong and Liaoning
+ggplot() + geom_line(data = LEP, aes(x = Year, y = Enterprise_Population, color = "Liaoning")) + 
+  geom_line(data = SEP, aes(x = Year, y = Enterprise_Population, color = "Shandong")) +
+  ggtitle("Enterprise per Population")
+
+#Plots the enterprise per population ratio as comparison of Shaanxi and Guangdong
+ggplot() + geom_line(data = SHEP, aes(x = Year, y = Enterprise_Population, color = "Shaanxi")) + 
+  geom_line(data = GEP, aes(x = Year, y = Enterprise_Population, color = "Guangdong")) +
+  ggtitle("Enterprise per Population")
+
+#This unlists the data frame so it can be used in the correlation test 
+liao_cor <- as.numeric(unlist(select(LEP, "Enterprise_Population")))
+shan_cor <- as.numeric(unlist(select(SEP, "Enterprise_Population")))
+shaanxi_cor <- as.numeric(unlist(select(SHEP, "Enterprise_Population")))
+guang_cor <- as.numeric(unlist(select(GEP, "Enterprise_Population")))
+
+#Runs a correlation test of the comparisons to see if they are correlated
+liao_shan_cor <- cor.test(liao_cor, shan_cor)
+shaanxi_guang_cor <- cor.test(shaanxi_cor, guang_cor)
+```
+
+
+If the p Value is less than 0.05, we reject the null hypothesis that the true correlation is zero (meaning that they are independent). The p Value for the Liaoning/Shandong test is 9.819e-05, so we can conclude that the Enterprise/Population ratio for Shandong is correlated to the Enterprise/Population Ratio of Liaoning. As to the Shaanxi/Guangdong test, the p Value is 0.0143116, therefore we can conclude that there is a correlation between the Enterprise/Population in Shaanxi and Guangdong.
+
+```{r sixth, echo = FALSE}
+#Set all NA values in the data to be 0 so it would still have an output even with NA values
+filtered_pop[is.na(filtered_pop)] = 0
+filtered_Ent[is.na(filtered_Ent)] = 0
+
+#North China Region
+N_Ent <- select(filtered_Ent, "Beijing_Enterprise", "Tianjin_Enterprise", "InnerMongolia_Enterprise", "Hebei_Enterprise", "Shanxi_Enterprise")
+N_Out <- select(filtered_Ent, "Beijing_Output", "Tianjin_Output", "InnerMongolia_Output", "Hebei_Output", "Shanxi_Output")
+N_Pop <- select(filtered_pop, "Beijing","Tianjin", "Hebei_Province", "Shanxi_Province", "InnerMongolia")
+
+#Aggregate population for North region by year and create North Region aggregate table
+N_Ent_Sum <- rowSums(N_Ent)
+N_frame <- data.frame("Year" = 2000:2017, "North_China_Enterprises" = N_Ent_Sum)
+
+#Aggregate Output for North region by year and add it to North Region table
+N_Out_Sum <- rowSums(N_Out)
+N_frame_2 <- mutate(N_frame, "North_China_Output" = N_Out_Sum)
+
+#Aggregate Population for North region by year and add it to North Region table
+N_Pop_Sum <- rowSums(N_Out)
+N_frame_final <- mutate(N_frame_2, "North_China_Pop" = N_Pop_Sum)
+
+#Northeast China Region
+NE_Ent <- select(filtered_Ent, "Liaoning_Enterprise", "Jilin_Enterprise", "Heilongjiang_Enterprise")
+NE_Out <- select(filtered_Ent, "Liaoning_Output", "Jilin_Output", "Heilongjiang_Output")
+NE_Pop <- select(filtered_pop, "Liaoning_Province", "Jilin_Province", "Heilongjiang_Province")
+
+#Aggregate population for Northeast region by year and create Northeast Region aggregate table
+NE_Ent_Sum <- rowSums(NE_Ent)
+NE_frame <- data.frame("Northeast_China_Enterprises" = NE_Ent_Sum)
+
+#Aggregate Output for Northeast region by year and add it to Northeast Region table
+NE_Out_Sum <- rowSums(NE_Out)
+NE_frame_2 <- mutate(NE_frame, "Northeast_China_Output" = NE_Out_Sum)
+
+#Aggregate Population for Northeast region by year and add it to Northeast Region table
+NE_Pop_Sum <- rowSums(NE_Out)
+NE_frame_final <- mutate(NE_frame_2, "Northeast_China_Pop" = NE_Pop_Sum)
+
+#East China Region
+E_Ent <- select(filtered_Ent, "Shanghai_Enterprise", "Jiangsu_Enterprise", "Zhejiang_Enterprise", "Anhui_Enterprise", "Fujian_Enterprise", "Jiangxi_Enterprise", "Shandong_Enterprise")
+E_Out <- select(filtered_Ent, "Shanghai_Output", "Jiangsu_Output", "Zhejiang_Output", "Anhui_Output", "Fujian_Output", "Jiangxi_Output", "Shandong_Output")
+E_Pop <- select(filtered_pop, "Shanghai", "Jiangsu_Province", "Zhejiang_Province", "Anhui_Province", "Fujian_Province", "Jiangxi_Province", "Shandong_Province")
+
+#Aggregate population for East region by year and create East Region aggregate table
+E_Ent_Sum <- rowSums(E_Ent)
+E_frame <- data.frame("East_China_Enterprises" = E_Ent_Sum)
+
+#Aggregate Output for East region by year and add it to East Region table
+E_Out_Sum <- rowSums(E_Out)
+E_frame_2 <- mutate(E_frame, "East_China_Output" = E_Out_Sum)
+
+#Aggregate Population for East region by year and add it to East Region table
+E_Pop_Sum <- rowSums(E_Out)
+E_frame_final <- mutate(E_frame_2, "East_China_Pop" = E_Pop_Sum)
+
+#South Central China Region
+SCC_Ent <- select(filtered_Ent, "Henan_Enterprise", "Hubei_Enterprise", "Hunan_Enterprises", "Guangdong_Enterprise", "Guangxi_Enterprise", "Hainan_Enterprise")
+SCC_Out <- select(filtered_Ent, "Henan_Output", "Hubei_Output", "Hunan_Output", "Guangdong_Output", "Guangxi_Output", "Hainan_Output")
+SCC_Pop <- select(filtered_pop, "Henan_Province", "Hubei_Province", "Hunan_Province", "Guangdong_Province", "Guangxi", "Hainan_Province")
+
+#Aggregate population for South Central region by year and create South Central Region aggregate table
+SCC_Ent_Sum <- rowSums(SCC_Ent)
+SCC_frame <- data.frame("South_Central_China_Enterprises" = SCC_Ent_Sum)
+
+#Aggregate Output for South Central region by year and add it to South Central Region table
+SCC_Out_Sum <- rowSums(SCC_Out)
+SCC_frame_2 <- mutate(SCC_frame, "South_Central_China_Output" = SCC_Out_Sum)
+
+#Aggregate Population for South Central region by year and add it to South Central Region table
+SCC_Pop_Sum <- rowSums(SCC_Out)
+SCC_frame_final <- mutate(SCC_frame_2, "South_Central_China_Pop" = SCC_Pop_Sum)
+
+#Southwest China Region
+SW_Ent <- select(filtered_Ent, "Chongqing_Enterprise", "Sichuan_Enterprise", "Guizhou_Enterprise", "Yunnan_Enterprise", "Tibet_Enterprise")
+SW_Out <- select(filtered_Ent, "Chongqing_Output", "Sichuan_Output", "Guizhou_Output", "Yunnan_Output", "Tibet_Output")
+SW_Pop <- select(filtered_pop, "Chongqing", "Sichuan_Province", "Guizhou_Province", "Yunnan_Province", "Tibet")
+
+#Aggregate population for Southwest China region by year and create Southwest Region aggregate table
+SW_Ent_Sum <- rowSums(SW_Ent)
+SW_frame <- data.frame("Southwest_China_Enterprises" = SW_Ent_Sum)
+
+#Aggregate Output for Southwest region by year and add it to Southwest Region table
+SW_Out_Sum <- rowSums(SW_Out)
+SW_frame_2 <- mutate(SW_frame, "Southwest_China_Output" = SW_Out_Sum)
+
+#Aggregate Population for Southwest region by year and add it to Southwest Region table
+SW_Pop_Sum <- rowSums(SW_Out)
+SW_frame_final <- mutate(SW_frame_2, "Southwest_China_Pop" = SW_Pop_Sum)
+
+#Northwest China Region
+NW_Ent <- select(filtered_Ent, "Shaanxi_Enterprise", "Gansu_Enterprise", "Qinghai_Enterprise", "Ningxia_Enterprise", "Xinjiang_Enterprise")
+NW_Out <- select(filtered_Ent, "Shaanxi_Output", "Gansu_Output", "Qinghai_Output", "Ningxia_Output", "Xinjiang_Output")
+NW_Pop <- select(filtered_pop, "Shaanxi_Province", "Gansu_Province", "Qinghai_Province", "Ningxia", "Xinjiang")
+
+#Aggregate population for Northwest region by year and create Northwest Region aggregate table
+NW_Ent_Sum <- rowSums(NW_Ent)
+NW_frame <- data.frame("Northwest_China_Enterprises" = NW_Ent_Sum)
+
+#Aggregate Output for Northwest region by year and add it to Northwest Region table
+NW_Out_Sum <- rowSums(NW_Out)
+NW_frame_2 <- mutate(NW_frame, "Northwest_China_Output" = NW_Out_Sum)
+
+#Aggregate Population for Northwest region by year and add it to Northwest Region table
+NW_Pop_Sum <- rowSums(NW_Out)
+NW_frame_final <- mutate(NW_frame_2, "Northwest_China_Pop" = NW_Pop_Sum)
+
+#Combine all of the final frames to put it into one frame
+final_frame <- cbind(N_frame_final, NE_frame_final, E_frame_final, SCC_frame_final,  SW_frame_final, NW_frame_final)
+#kable for better styling and cleaner display, only showing first few rows to reduce size taken
+kable(head(final_frame)) %>% kable_styling()
+```
